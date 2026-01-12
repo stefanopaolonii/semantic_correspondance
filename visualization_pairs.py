@@ -175,7 +175,7 @@ def get_predictions(model, predictor, src_img, trg_img, kp_src_all, method='argm
         
         predictions = []
         for i in range(len(kp_src_all)):
-            kp_src = kp_src_all[i:i+1].unsqueeze(0).to(device)  # [1, 1, 2]
+            kp_src = kp_src_all[i:i+1].unsqueeze(0).to(device)
             
             kp_trg_feat = predictor.predict_with_image_coords(
                 feat_src, feat_trg, kp_src, H_img, W_img, method=method
@@ -222,33 +222,9 @@ def visualize_correspondence_pair(
     title=None,
     model_label='Model'
 ):
-    """
-    Create visualization of correspondence predictions.
-    
-    Args:
-        src_img_pil: Source PIL image
-        trg_img_pil: Target PIL image
-        kp_src: Source keypoints [N, 2] in original image coords
-        kp_trg_gt: Ground truth target keypoints [N, 2]
-        kp_trg_pred: Predicted target keypoints [N, 2] (baseline)
-        kp_trg_pred_tuned: Predicted target keypoints [N, 2] (tuned, optional)
-        keypoint_indices: Which keypoints to visualize (None = all)
-        show_gt: Whether to show ground truth
-        line_width: Width of correspondence lines
-        marker_size: Size of markers
-        alpha: Line transparency
-        figsize: Figure size
-        title: Optional title
-        model_label: Model name for legend
-    
-    Returns:
-        matplotlib figure
-    """
-    # Convert images to numpy
     src_img = np.array(src_img_pil)
     trg_img = np.array(trg_img_pil)
     
-    # Determine which keypoints to show
     n_kp = len(kp_src)
     if keypoint_indices is None:
         keypoint_indices = list(range(n_kp))
@@ -257,7 +233,7 @@ def visualize_correspondence_pair(
     src_h, src_w = src_img.shape[:2]
     trg_h, trg_w = trg_img.shape[:2]
     
-    # Use the maximum width for both images (for centering)
+    # Use the maximum width for both images 
     max_w = max(src_w, trg_w)
     total_h = src_h + trg_h
     
@@ -266,11 +242,8 @@ def visualize_correspondence_pair(
     fig_h = figsize[1]
     fig_w = fig_h * aspect
     
-    # Create figure with GridSpec for tight control
     fig = plt.figure(figsize=(fig_w, fig_h))
-    
-    # Create axes that span the full figure, stacked vertically
-    # Heights proportional to image heights
+
     height_ratios = [src_h, trg_h]
     gs = fig.add_gridspec(2, 1, height_ratios=height_ratios, hspace=0, wspace=0,
                           left=0, right=1, top=0.95 if title else 1, bottom=0)
@@ -278,7 +251,6 @@ def visualize_correspondence_pair(
     ax_src = fig.add_subplot(gs[0])
     ax_trg = fig.add_subplot(gs[1])
     
-    # Display images centered
     # Calculate centering offsets
     src_offset = (max_w - src_w) / 2
     trg_offset = (max_w - trg_w) / 2
@@ -412,7 +384,6 @@ def visualize_correspondence_pair(
                    linestyle='None', markeredgewidth=2, label=f'{model_label} Prediction')
         )
     
-    # Place legend at top right, horizontal
     fig.legend(
         handles=legend_elements,
         loc='upper right',
@@ -475,14 +446,13 @@ def main():
     src_img_pil, trg_img_pil = load_original_images(dataset, args.sample_idx, target_size=resolution)
     
     # Images are now at model resolution, no need to scale
-    src_orig_w, src_orig_h = src_img_pil.size  # Will be (resolution, resolution)
-    trg_orig_w, trg_orig_h = trg_img_pil.size  # Will be (resolution, resolution)
+    src_orig_w, src_orig_h = src_img_pil.size 
+    trg_orig_w, trg_orig_h = trg_img_pil.size  
     
-    # Get keypoints in model resolution (already correct, no scaling needed)
+    # Get keypoints in model resolution
     kp_src_model = sample['src_kps'].cpu()  # [N, 2]
     kp_trg_gt_model = sample['trg_kps'].cpu()  # [N, 2]
     
-    # No scaling needed since images are at model resolution
     kp_src = kp_src_model.numpy()
     kp_trg_gt = kp_trg_gt_model.numpy()
     
@@ -502,14 +472,14 @@ def main():
         model, predictor, src_img_tensor, trg_img_tensor,
         kp_src_model, method=args.match_method
     )
-    # No scaling needed since images are at model resolution
+
     kp_trg_pred = pred_model
     print(f"  Predictions computed ({args.match_method})")
     
     del model
     torch.cuda.empty_cache() if torch.cuda.is_available() else None
     
-    # Get predictions from tuned model (if specified)
+    # Get predictions from tuned model
     kp_trg_pred_tuned = None
     if args.model_arch_tuned:
         print(f"\nLoading tuned model ({args.model_arch_tuned})...")
@@ -520,7 +490,7 @@ def main():
             model_tuned, predictor, src_img_tensor, trg_img_tensor,
             kp_src_model, method=args.match_method_tuned
         )
-        # No scaling needed since images are at model resolution
+
         kp_trg_pred_tuned = pred_tuned
         print(f"  Predictions computed ({args.match_method_tuned})")
         
