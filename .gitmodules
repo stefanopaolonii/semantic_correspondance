@@ -1,0 +1,12 @@
+[submodule "models/dinov2"]
+	path = models/dinov2
+	url = https://github.com/facebookresearch/dinov2.git
+[submodule "models/dinov3"]
+	path = models/dinov3
+	url = https://github.com/facebookresearch/dinov3.git
+[submodule "models/segment-anything"]
+	path = models/segment-anything
+	url = https://github.com/facebookresearch/segment-anything.git
+[submodule "models/CLIP"]
+	path = models/CLIP
+	url = https://github.com/openai/CLIP.git
